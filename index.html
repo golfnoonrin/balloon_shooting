@@ -679,13 +679,16 @@
         }
 
         // ================================================================
-        //  Draw Hand (นิ้วชี้ + เอฟเฟกต์เรืองแสง)
+        //  Draw Hand (นิ้วชี้ + เอฟเฟกต์เรืองแสง) แบบ Mirror
         // ================================================================
         function drawHand(landmarks) {
             if (!landmarks) return;
             const idx = landmarks[8];
             if (!idx) return;
-            const x = idx.x * canvas.width;
+
+            // 🔄 Mirror ภาพ: สะท้อนแกน X (เหมือนมองกระจก)
+            const mirrorX = 1 - idx.x;
+            const x = mirrorX * canvas.width;
             const y = idx.y * canvas.height;
 
             // Glow
@@ -731,9 +734,14 @@
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // วาดวิดีโอพื้นหลัง
+            // 🔄 วาดวิดีโอพื้นหลังแบบ Mirror (สะท้อนกระจก)
             if (video.readyState >= 2) {
+                ctx.save();
+                // สะท้อนแกน X
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                ctx.restore();
             } else {
                 ctx.fillStyle = '#1a1a2e';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -748,7 +756,7 @@
             updateParticles();
             drawParticles();
 
-            // มือ
+            // มือ (แบบ Mirror แล้ว)
             if (landmarks) {
                 drawHand(landmarks);
             }
@@ -756,12 +764,17 @@
             // อัปเดตลูกโป่ง
             updateBalloons();
 
-            // ตรวจจับการชน (เฉพาะ playing)
+            // ============================================================
+            //  ตรวจจับการชน (ใช้พิกัด Mirror)
+            // ============================================================
             if (gameState === 'playing' && landmarks && landmarks.length > 0) {
                 const tip = landmarks[8];
                 if (tip) {
-                    const ix = tip.x * canvas.width;
+                    // Mirror พิกัด X เช่นเดียวกับที่ใช้ใน drawHand
+                    const mirrorX = 1 - tip.x;
+                    const ix = mirrorX * canvas.width;
                     const iy = tip.y * canvas.height;
+
                     for (const b of balloons) {
                         if (!b.alive) continue;
                         const dx = ix - b.x;
@@ -923,8 +936,8 @@
         // ================================================================
         gameLoop();
 
-        console.log('🎈 Balloon Burst: คำประวิสรรชนีย์ Challenge พร้อมใช้งาน!');
-        console.log('📦 Deploy บน GitHub Pages ได้เลย');
+        console.log('🎈 Balloon Burst: คำประวิสรรชนีย์ Challenge (Mirror Mode)');
+        console.log('🔄 ภาพกล้องเป็นแบบสะท้อนกระจก เหมือนมองตัวเองในกระจก');
     </script>
 
 </body>
